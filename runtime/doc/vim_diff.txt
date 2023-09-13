@@ -252,6 +252,7 @@ Commands:
   |:write| with "++p" flag creates parent directories.
 
 Events:
+  |CmdlineCharPre|
   |RecordingEnter|
   |RecordingLeave|
   |SearchWrapped|
