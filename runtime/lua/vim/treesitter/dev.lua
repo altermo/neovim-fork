@@ -42,22 +42,24 @@ local TSTreeView = {}
 ---@param lang string Language of the tree currently being traversed
 ---@param injections table<string, TSP.Injection> Mapping of node ids to root nodes
 ---                  of injected language trees (see explanation above)
+---@param field string|nil The field of the current node
 ---@param tree TSP.Node[] Output table containing a list of tables each representing a node in the tree
-local function traverse(node, depth, lang, injections, tree)
+local function traverse(node, depth, lang, injections, field, tree)
+  table.insert(tree, {
+    node = node,
+    depth = depth,
+    lang = lang,
+    field = field,
+  })
+  depth = depth + 1
+
   local injection = injections[node:id()]
   if injection then
-    traverse(injection.root, depth, injection.lang, injections, tree)
+    traverse(injection.root, depth, injection.lang, injections, nil, tree)
   end
 
-  for child, field in node:iter_children() do
-    table.insert(tree, {
-      node = child,
-      field = field,
-      depth = depth,
-      lang = lang,
-    })
-
-    traverse(child, depth + 1, lang, injections, tree)
+  for child, child_field in node:iter_children() do
+    traverse(child, depth, lang, injections, child_field, tree)
   end
 
   return tree
@@ -101,7 +103,7 @@ function TSTreeView:new(bufnr, lang)
     end
   end)
 
-  local nodes = traverse(root, 0, parser:lang(), injections, {})
+  local nodes = traverse(root, 0, parser:lang(), injections, nil, {})
 
   local named = {} ---@type TSP.Node[]
   for _, v in ipairs(nodes) do
