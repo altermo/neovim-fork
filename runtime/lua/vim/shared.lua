@@ -91,7 +91,7 @@ end
 ---
 --- @param s string String to split
 --- @param sep string Separator or pattern
---- @param opts (table|nil) Keyword arguments |kwargs|:
+--- @param opts (table|boolean|nil) Keyword arguments |kwargs|:
 ---       - plain: (boolean) Use `sep` literally (as in string.find).
 ---       - trimempty: (boolean) Discard empty segments at start and end of the sequence.
 ---@return fun():string|nil (function) Iterator over the split components
@@ -182,7 +182,7 @@ end
 ---
 ---@param s string String to split
 ---@param sep string Separator or pattern
----@param opts (table|nil) Keyword arguments |kwargs| accepted by |vim.gsplit()|
+---@param opts (table|boolean|nil) Keyword arguments |kwargs| accepted by |vim.gsplit()|
 ---@return string[] List of split components
 function vim.split(s, sep, opts)
   local t = {}

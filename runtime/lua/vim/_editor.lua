@@ -646,7 +646,7 @@ local on_key_cbs = {}
 ---@note {fn} will not be cleared by |nvim_buf_clear_namespace()|
 ---@note {fn} will receive the keys after mappings have been evaluated
 ---
----@param fn fun(key: string) Function invoked on every key press. |i_CTRL-V|
+---@param fn fun(key: string)? Function invoked on every key press. |i_CTRL-V|
 ---                   Returning nil removes the callback associated with namespace {ns_id}.
 ---@param ns_id integer? Namespace ID. If nil or 0, generates and returns a
 ---                     new |nvim_create_namespace()| id.

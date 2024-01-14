@@ -83,7 +83,7 @@ end
 --- @field exclude_pattern? vim.lpeg.Pattern
 
 ---@param path string
----@param opts watch.PollOpts
+---@param opts watch.PollOpts?
 ---@param callback function Called on new events
 ---@return function cancel stops the watcher
 local function recurse_watch(path, opts, callback)
