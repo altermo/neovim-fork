@@ -8,5 +8,7 @@ vim.api.nvim_create_user_command('TOhtml', function(args)
   local html = require('tohtml').tohtml()
   vim.fn.writefile(html, outfile)
   vim.cmd.split(outfile)
-  vim.bo.filetype = 'html'
+  if vim.bo.filetype ~= 'html' then
+    vim.bo.filetype = 'html'
+  end
 end, { bar = true, nargs = '?' })
