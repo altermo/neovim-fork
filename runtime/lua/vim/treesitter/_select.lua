@@ -486,8 +486,7 @@ local function get_sibling_from_range(range, prev)
   node = node_normalize_up(node, parent_chain)
   local parent = node_get_parent_no_normalize(node, parent_chain)
   if T then
-    -- local _={parent.node:range()}
-    -- vim.print({parent.node:range()})
+    vim.print(1)
   end
   if not parent then
     return
