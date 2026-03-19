@@ -82,6 +82,7 @@ describe('treesitter incremental-selection', function()
     eq('4', get_selected())
 
     treeselect('select_prev', 2)
+    eq({1,7,0,1}, fn.getregion('.'))
     eq('2', get_selected())
 
     treeselect('select_parent', 2)
