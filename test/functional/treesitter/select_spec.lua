@@ -72,7 +72,7 @@ describe('treesitter incremental-selection '..i, function()
   end)
 
   it('repeat', function()
-    for i=1,1000 do
+    for i=1,10000 do
     clear()
 
     local code = {
@@ -100,8 +100,10 @@ describe('treesitter incremental-selection '..i, function()
     treeselect('select_next', 3)
     eq('4', get_selected())
 
+    exec_lua'_G.T=true'
     treeselect('select_prev', 2)
-    -- eq('2', get_selected())
+    eq('2', get_selected())
+    exec_lua'_G.T=false'
 
     treeselect('select_parent', 2)
     eq('foo(1,2,3,4)', get_selected())
