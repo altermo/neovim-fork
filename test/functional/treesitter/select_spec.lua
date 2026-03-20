@@ -37,7 +37,8 @@ local function treeselect(cmd_, ...)
   end, cmd_, ...)
 end
 
-for i=1,1 do
+-- for i=1,1 do
+local i=''
 describe('treesitter incremental-selection '..i, function()
   before_each(function()
     clear()
@@ -195,4 +196,4 @@ describe('treesitter incremental-selection '..i, function()
     eq('foo(1)\nbar(2)\n', get_selected())
   end)
 end)
-end
+-- end
