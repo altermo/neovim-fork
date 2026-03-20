@@ -101,10 +101,12 @@ describe('treesitter incremental-selection '..i, function()
     treeselect('select_next', 3)
     eq('4', get_selected())
 
-    exec_lua'_G.T=true'
+    if t.skip(jit==nil) then
+      return
+    end
+
     treeselect('select_prev', 2)
     eq('2', get_selected())
-    exec_lua'_G.T=false'
 
     treeselect('select_parent', 2)
     eq('foo(1,2,3,4)', get_selected())

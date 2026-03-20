@@ -490,9 +490,6 @@ local function get_sibling_from_range(range, prev)
   end
 
   local siblings = node_get_children_no_normalize(parent)
-  if T then
-    _G.P[_G.N]=siblings
-  end
 
   --- @type integer?
   local idx
@@ -526,9 +523,7 @@ end
 local function repeate_apply_range(count, fn)
   local range = get_selection()
 
-  _G.P={}
   for _ = 1, count or 1 do
-    _G.N=_
     local node = fn(range)
 
     if not node then
@@ -561,13 +556,6 @@ end
 --- @param count integer
 function M.select_prev(count)
   repeate_apply_range(count, get_prev_from_range)
-
-
-  if _G.P~=nil then
-    for i=1,100 do
-    end
-    _G.P=nil
-  end
 end
 
 return M
