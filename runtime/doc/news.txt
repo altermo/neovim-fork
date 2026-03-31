@@ -96,7 +96,7 @@ LSP
 
 LUA
 
-• todo
+• |vim.keycode()| now can parse keymappings.
 
 OPTIONS
 

@@ -1121,6 +1121,77 @@ function vim.print(...)
   return vim._print(false, ...)
 end
 
+--- @class vim.keycode.parse
+--- @inlinedoc
+---
+--- @field key string
+---
+--- @field mod ('M'|'T'|'C'|'S'|'2'|'3'|'4'|'D')[]
+---
+--- The original key with modifiers and all.
+--- @field orig_key string
+---
+--- Alternative representation of {key}, if exists.
+--- @field alt_key string?
+
+--- @param str string
+--- @return vim.keycode.parse[]
+--- @see |vim.keycode()|
+--- @see |keytrans()|
+local function key_parse(str)
+  local keys_normalized = vim.fn.keytrans(vim.keycode(str))
+
+  local notation_to_key = {
+    Bslash = '\\',
+    Bar = '|',
+
+    lt = '<',
+    Tab = '\t',
+    CR = '\r',
+    NL = '\n',
+    Esc = '\27',
+    Space = ' ',
+
+    ['^?'] = '\127',
+    ['^@'] = '\0',
+  }
+
+  local l = vim.lpeg
+  local pat = l.P {
+    'keys',
+    keys = l.Ct(l.V 'key' ^ 0),
+    key = l.C(l.V '<>' + (l.Ct(l.P(0)) * l.C(l.V 'char'))) / function(orig_key, mod, key)
+      if #key == 1 and key:lower() ~= key then
+        if not vim.tbl_contains(mod, 'C') then
+          table.insert(mod, 'S')
+        end
+        key = string.lower(key)
+      end
+
+      ---@type string?
+      local alt_key
+      if notation_to_key[key] then
+        alt_key = key
+        key = notation_to_key[key]
+      end
+
+      return { mod = mod, key = key, orig_key = orig_key, alt_key = alt_key }
+    end,
+    ['<>'] = l.P '<'
+      * l.V 'mod'
+      * (l.C(l.P 't_' * l.P(2) + l.P(1) * (l.P(1) - l.P('>')) ^ 0))
+      * l.P '>',
+    mod = l.Ct((l.C(l.P(1)) * l.P '-') ^ 1 + l.P(0)),
+    char = l.R '\0\127'
+      + l.R '\194\223' * l.R '\128\191'
+      + l.R '\224\236' * l.R '\128\191' * l.R '\128\191'
+      + l.R '\240\244' * l.R '\128\191' * l.R '\128\191' * l.R '\128\191'
+      + l.P(1),
+  }
+
+  return pat:match(keys_normalized)
+end
+
 --- Translates keycodes.
 ---
 --- Example:
@@ -1131,9 +1202,14 @@ end
 --- ```
 ---
 --- @param str string String to be converted.
---- @return string
+--- @param parse boolean Parse the keycode instead.
+--- @return vim.keycode.parse|string
+--- @overload fun(str: string): string
 --- @see |nvim_replace_termcodes()|
-function vim.keycode(str)
+function vim.keycode(str, parse)
+  if parse then
+    return key_parse(str)
+  end
   return vim.api.nvim_replace_termcodes(str, true, true, true)
 end
 
