@@ -139,7 +139,7 @@ UI
 
 VIMSCRIPT
 
-• todo
+• |keytrans()| can return detailed info about keys.
 
 ==============================================================================
 CHANGED FEATURES                                                 *news-changed*

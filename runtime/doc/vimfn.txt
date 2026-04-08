@@ -5679,8 +5679,18 @@ keytrans({string})                                                  *keytrans()*
 			echo keytrans(xx)
 <			<C-Home>
 
+		When {dict} is TRUE, a list of dictionaries will be returned,
+		where each dictionary corresponds to a singular key with the
+		following items:
+		  "key" the key without modifiers
+		  "alt_key" alternative representation of key, only present
+		  when it differs from "key"
+		  "orig_key" the original key with modifiers
+		  "mod" a list of single character modifiers of the key
+
                 Parameters: ~
                   • {string} (`string`)
+                  • {dict} (`false?`)
 
                 Return: ~
                   (`string`)

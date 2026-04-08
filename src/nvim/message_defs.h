@@ -29,3 +29,10 @@ typedef struct msg_hist {
   bool append;            ///< Message should be appended to previous entry, as opposed
                           ///< to on a new line (|ui-messages|->msg_show->append).
 } MessageHistoryEntry;
+
+struct keycode_data {
+  int modifiers;
+  char _small_key;
+  String key;
+  String alt_key;
+};

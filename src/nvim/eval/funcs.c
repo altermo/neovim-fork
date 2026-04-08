@@ -3887,14 +3887,50 @@ static void f_json_encode(typval_T *argvars, typval_T *rettv, EvalFuncData fptr)
 /// "keytrans()" function
 static void f_keytrans(typval_T *argvars, typval_T *rettv, EvalFuncData fptr)
 {
-  rettv->v_type = VAR_STRING;
+  const bool get_dict = non_zero_arg(&argvars[1]);
+
+  if (get_dict) {
+    rettv->v_type = VAR_LIST;
+  } else {
+    rettv->v_type = VAR_STRING;
+  }
   if (tv_check_for_string_arg(argvars, 0) == FAIL
       || argvars[0].vval.v_string == NULL) {
     return;
   }
   // Need to escape K_SPECIAL for mb_unescape().
   char *escaped = vim_strsave_escape_ks(argvars[0].vval.v_string);
-  rettv->vval.v_string = str2special_save(escaped, true, true);
+  if (get_dict) {
+    tv_list_alloc_ret(rettv, 0);
+
+    const char *p = escaped;
+    struct keycode_data data;
+
+    while (*p != NUL) {
+      REAL_FATTR_UNUSED const char *key = str2special(&p, true, true, &data);
+
+      dict_T *const d = tv_dict_alloc();
+      tv_list_append_dict(rettv->vval.v_list, d);
+
+      // tv_dict_add_nr(d, S_LEN("mod"), data.modifiers);
+
+      list_T *const l = tv_list_alloc(0);
+      tv_dict_add_list(d, S_LEN("mod"), l);
+      for (int i = 0; mod_mask_table[i].name != 'A'; i++) {
+        if ((data.modifiers & mod_mask_table[i].mod_mask) == mod_mask_table[i].mod_flag) {
+          tv_list_append_string(l, &mod_mask_table[i].name, 1);
+        }
+      }
+
+      tv_dict_add_str_len(d, S_LEN("key"), data.key.data, (int)data.key.size);
+      tv_dict_add_str(d, S_LEN("orig_key"), key);
+      if (data.alt_key.size != 0) {
+        tv_dict_add_str_len(d, S_LEN("alt_key"), data.alt_key.data, (int)data.alt_key.size);
+      }
+    }
+  } else {
+    rettv->vval.v_string = str2special_save(escaped, true, true);
+  }
   xfree(escaped);
 }
 

@@ -5149,9 +5149,24 @@ function vim.fn.keys(dict) end
 ---   echo keytrans(xx)
 --- <  <C-Home>
 ---
+--- When {dict} is TRUE, a list of dictionaries will be returned,
+--- where each dictionary corresponds to a singular key with the
+--- following items:
+---   "key" the key without modifiers
+---   "alt_key" alternative representation of key, only present
+---   when it differs from "key"
+---   "orig_key" the original key with modifiers
+---   "mod" a list of single character modifiers of the key
+---
 --- @param string string
+--- @param dict? false
 --- @return string
-function vim.fn.keytrans(string) end
+function vim.fn.keytrans(string, dict) end
+
+--- @param string string
+--- @param dict true
+--- @return table<string,any>[]
+function vim.fn.keytrans(string, dict) end
 
 --- @deprecated
 --- Obsolete name for bufnr("$").

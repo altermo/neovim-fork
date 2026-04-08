@@ -6329,7 +6329,7 @@ M.funcs = {
     signature = 'keys({dict})',
   },
   keytrans = {
-    args = 1,
+    args = { 1, 2 },
     base = 1,
     desc = [=[
       Turn the internal byte representation of keys into a form that
@@ -6338,11 +6338,29 @@ M.funcs = {
       	echo keytrans(xx)
       <	<C-Home>
 
+      When {dict} is TRUE, a list of dictionaries will be returned,
+      where each dictionary corresponds to a singular key with the
+      following items:
+        "key" the key without modifiers
+        "alt_key" alternative representation of key, only present
+        when it differs from "key"
+        "orig_key" the original key with modifiers
+        "mod" a list of single character modifiers of the key
     ]=],
     name = 'keytrans',
-    params = { { 'string', 'string' } },
+    params = { { 'string', 'string' }, { 'dict', 'false' } },
     returns = 'string',
     signature = 'keytrans({string})',
+  },
+  keytrans__1 = {
+    args = { 2 },
+    base = 1,
+    name = 'keytrans',
+    params = {
+      { 'string', 'string' },
+      { 'dict', 'true' },
+    },
+    returns = 'table<string,any>[]',
   },
   last_buffer_nr = {
     deprecated = true,
