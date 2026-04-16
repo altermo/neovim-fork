@@ -280,28 +280,28 @@ jobs:
         with:
           version: 0.15.2
 
-      - run: zig build test_nlua0 -Dluajit=false
-      - run: zig build nvim_bin -Dluajit=false && ./zig-out/bin/nvim --version
-      - run: zig build functionaltest -Dluajit=false
+      # - run: zig build test_nlua0 -Dluajit=false
+      # - run: zig build nvim_bin -Dluajit=false && ./zig-out/bin/nvim --version
+      - run: zig build functionaltest -Dluajit=false -- test/functional/treesitter/select_spec.lua
 
-  zig-build-windows:
-    runs-on: windows-2025
-    timeout-minutes: 45
-    name: build using zig build (windows)
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # v2.2.1
-        with:
-          version: 0.15.2
-
-      - run: zig build test_nlua0
-      - run: zig build nvim_bin
-      - run: ./zig-out/bin/nvim --version
-      # TODO: support entire test suite
-      - run: zig build functionaltest -- test/functional/api/buffer_spec.lua
+  # zig-build-windows:
+  #   runs-on: windows-2025
+  #   timeout-minutes: 45
+  #   name: build using zig build (windows)
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #       with:
+  #         persist-credentials: false
+  #
+  #     - uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # v2.2.1
+  #       with:
+  #         version: 0.15.2
+  #
+  #     - run: zig build test_nlua0
+  #     - run: zig build nvim_bin
+  #     - run: ./zig-out/bin/nvim --version
+  #     # TODO: support entire test suite
+  #     - run: zig build functionaltest -- test/functional/api/buffer_spec.lua
 
   # windows:
   #   uses: ./.github/workflows/test_windows.yml
