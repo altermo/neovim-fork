@@ -94,8 +94,17 @@ describe('treesitter incremental-selection '..i, function()
     treeselect('select_child', 2)
     eq('1', get_selected())
 
+    exec_lua[[
+    _G.a={}
+    ]]
     treeselect('select_next', 3)
-    eq('4', get_selected())
+    local msg=''
+    if get_selected()~='4' then
+    msg=exec_lua[[
+    return vim.inspect(_G.a)
+    ]]
+    end
+    eq('4', get_selected(), msg)
 
     -- if t.skip(jit == nil, 'sometimes fails on PUC lua') then
     --   return

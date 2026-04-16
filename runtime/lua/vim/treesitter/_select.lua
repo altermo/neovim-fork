@@ -521,9 +521,11 @@ end
 --- @param count integer
 --- @param fn fun(range: Range4): vim.treesitter.select.node
 local function repeate_apply_range(count, fn)
+  _G.a=_G.a or {}
   local range = get_selection()
 
   for _ = 1, count or 1 do
+    table.insert(_G.a,range)
     local node = fn(range)
 
     if not node then
@@ -532,6 +534,7 @@ local function repeate_apply_range(count, fn)
 
     range = node_range(node)
   end
+  table.insert(_G.a,range)
 
   if range and count ~= 0 then
     visual_select(range)
