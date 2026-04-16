@@ -101,7 +101,7 @@ describe('treesitter incremental-selection '..i, function()
     local msg=''
     if get_selected()~='4' then
     msg=exec_lua[[
-    return vim.inspect(_G.a)
+    return '\n\n\n'..table.concat(vim.tbl_map(vim.inspect,_G.a),'\n')..'\n\n\n'
     ]]
     end
     eq('4', get_selected(), msg)
@@ -110,14 +110,14 @@ describe('treesitter incremental-selection '..i, function()
     --   return
     -- end
     --
-    -- treeselect('select_prev', 2)
-    -- eq('2', get_selected())
-    --
-    -- treeselect('select_parent', 2)
-    -- eq('foo(1,2,3,4)', get_selected())
-    --
-    -- treeselect('select_child', 2)
-    -- eq('2', get_selected())
+    treeselect('select_prev', 2)
+    eq('2', get_selected())
+
+    treeselect('select_parent', 2)
+    eq('foo(1,2,3,4)', get_selected())
+
+    treeselect('select_child', 2)
+    eq('2', get_selected())
     end
   end)
 

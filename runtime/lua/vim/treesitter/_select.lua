@@ -1,5 +1,11 @@
 local Range = require('vim.treesitter._range')
 
+local function log(...)
+  for _,v in ipairs{...} do
+    table.insert(_G.a,v)
+  end
+end
+
 --- This is (currently only) used for saving what child one is in when doing
 --- `select_parent` so that if they later `select_child` on the parent-node,
 --- they get back to the child-node they were in instead of the parents first
@@ -36,7 +42,7 @@ local M = {}
 --- @param node vim.treesitter.select.node
 --- @return string
 local function node_id(node)
-  return ('%s:%s'):format(table.concat({ unpack(node.top.region) }, ':'), node.node:id())
+  return table.concat({ unpack(node.top.region) }, ':')..':'..node.node:id()
 end
 
 --- @param node vim.treesitter.select.node
@@ -489,7 +495,14 @@ local function get_sibling_from_range(range, prev)
     return
   end
 
+  local function f(node)
+    node=node.node
+    id=node:id()
+    return {id,#id}
+  end
   local siblings = node_get_children_no_normalize(parent)
+  log('Selected-node-id:',f(node))
+  log('Selected-node-siblings-id:',vim.tbl_map(f,siblings))
 
   --- @type integer?
   local idx
@@ -523,9 +536,9 @@ end
 local function repeate_apply_range(count, fn)
   _G.a=_G.a or {}
   local range = get_selection()
+  log('Start-Range:',range)
 
   for _ = 1, count or 1 do
-    table.insert(_G.a,range)
     local node = fn(range)
 
     if not node then
@@ -533,8 +546,8 @@ local function repeate_apply_range(count, fn)
     end
 
     range = node_range(node)
+    log('Range:',range)
   end
-  table.insert(_G.a,range)
 
   if range and count ~= 0 then
     visual_select(range)
