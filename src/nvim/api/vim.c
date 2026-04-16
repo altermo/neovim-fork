@@ -534,8 +534,6 @@ Object nvim_exec_lua(String code, Array args, Arena *arena, Error *err)
   return nlua_exec(code, NULL, args, kRetObject, arena, err);
 }
 
-/// EXPERIMENTAL: this API may change or be removed in the future.
-///
 /// Like |nvim_exec_lua()|, but can be called during |api-fast| contexts.
 ///
 /// Execute Lua code. Parameters (if any) are available as `...` inside the
@@ -1320,7 +1318,7 @@ void nvim_set_current_tabpage(Tabpage tabpage, Error *err)
 ///     line2
 ///     line3
 ///   ]], false, -1)
-/// end, { buffer = true })
+/// end, { buf = 0 })
 /// ```
 ///
 /// @param data  Multiline input. Lines break at LF ("\n"). May be binary (containing NUL bytes).
@@ -2302,8 +2300,6 @@ DictAs(eval_statusline_ret) nvim_eval_statusline(String str, Dict(eval_statuslin
   return result;
 }
 
-/// EXPERIMENTAL: this API may change in the future.
-///
 /// Sets info for the completion item at the given index. If the info text was shown in a window,
 /// returns the window and buffer ids, or empty dict if not shown.
 ///
@@ -2361,8 +2357,6 @@ static void redraw_status(win_T *wp, Dict(redraw) *opts, bool *flush)
   }
 }
 
-/// EXPERIMENTAL: this API may change in the future.
-///
 /// Instruct Nvim to redraw various components.
 ///
 /// @see |:redraw|

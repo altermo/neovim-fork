@@ -17,7 +17,7 @@ get an idea of what lurks beneath: >vim
     :lua vim.print(package.loaded)
 
 Nvim includes a "standard library" |lua-stdlib| for Lua.  It complements the
-"editor stdlib" (|vimscript-functions| + |Ex-commands|) and the |API|, all of
+"editor stdlib" (|vimscript-functions| + |Ex-command|s) and the |API|, all of
 which can be used from Lua code (|lua-vimscript| |vim.api|). These three
 namespaces form the Nvim programming interface.
 
@@ -483,7 +483,7 @@ It is an error to directly invoke `vim.api` functions (except |api-fast|) in
       vim.api.nvim_command('echomsg "test"')
     end)
 <
-To avoid the error use |vim.schedule_wrap()| to defer the callback: >lua
+To avoid the error, |schedule| the callback: >lua
 
     local timer = vim.uv.new_timer()
     timer:start(1000, 0, vim.schedule_wrap(function()
@@ -1231,7 +1231,7 @@ vim.wo[{winid}][{bufnr}]                                              *vim.wo*
 Lua module: vim                                                      *lua-vim*
 
 vim.cmd({command})                                                 *vim.cmd()*
-    Executes Vimscript (|Ex-commands|).
+    Executes Vimscript (|Ex-command|s).
 
     Can be indexed with a command name to get a function, thus you can write
     `vim.cmd.echo(…)` instead of `vim.cmd{cmd='echo',…}`.
@@ -1279,8 +1279,8 @@ vim.cmd({command})                                                 *vim.cmd()*
 vim.defer_fn({fn}, {timeout})                                 *vim.defer_fn()*
     Defers calling {fn} until {timeout} ms passes.
 
-    Use to do a one-shot timer that calls {fn} Note: The {fn} is
-    |vim.schedule()|d automatically, so API functions are safe to call.
+    Use to do a one-shot timer that calls {fn}. Note: The {fn} is |schedule|d
+    automatically, so API functions are safe to call.
 
     Parameters: ~
       • {fn}       (`function`) Callback to call once `timeout` expires
@@ -1304,7 +1304,7 @@ vim.deprecate({name}, {alternative}, {version}, {plugin}, {backtrace})
       • {backtrace}    (`boolean?`) Prints backtrace. Defaults to true.
 
     Return: ~
-        (`string?`) Deprecated message, or nil if no message was shown.
+        (`string?`) Deprecation message, or nil if no message was shown.
 
 vim.inspect()                                                  *vim.inspect()*
     Gets a human-readable representation of the given object.
@@ -2537,6 +2537,28 @@ vim.fs.dirname({file})                                      *vim.fs.dirname()*
     Return: ~
         (`string?`) Parent directory of {file}
 
+vim.fs.ext({file}, {opts})                                      *vim.fs.ext()*
+    Return the file's last extension, if any.
+
+    Similar to |fnamemodify()| with the |::e| modifier. The extension does not
+    include a leading period.
+
+    Examples: >lua
+        vim.fs.ext('archive.tar.gz') -- 'gz'
+        vim.fs.ext('~/.git') -- ''
+        vim.fs.ext('plugin/myplug.lua') -- 'lua'
+<
+
+    Attributes: ~
+        Since: 0.12.0
+
+    Parameters: ~
+      • {file}  (`string`) Path
+      • {opts}  (`table?`) Reserved for future use
+
+    Return: ~
+        (`string`) Extension of {file}
+
 vim.fs.find({names}, {opts})                                   *vim.fs.find()*
     Find files or directories (or other items as specified by `opts.type`) in
     the given path.
@@ -2744,7 +2766,7 @@ vim.fs.root({source}, {marker})                                *vim.fs.root()*
 
         -- Find the parent directory containing any file with a .csproj extension
         vim.fs.root(0, function(name, path)
-          return name:match('%.csproj$') ~= nil
+          return vim.fs.ext(name) == 'csproj'
         end)
 
         -- Find the first ancestor directory containing EITHER "stylua.toml" or ".luarc.json"; if
@@ -3576,15 +3598,15 @@ vim.keymap.del({modes}, {lhs}, {opts})                      *vim.keymap.del()*
     Remove an existing mapping. Examples: >lua
         vim.keymap.del('n', 'lhs')
 
-        vim.keymap.del({'n', 'i', 'v'}, '<leader>w', { buffer = 5 })
+        vim.keymap.del({'n', 'i', 'v'}, '<leader>w', { buf = 5 })
 <
 
     Parameters: ~
       • {modes}  (`string|string[]`)
       • {lhs}    (`string`)
       • {opts}   (`table?`) A table with the following fields:
-                 • {buffer}? (`integer|boolean`) Remove a mapping from the
-                   given buffer. When `0` or `true`, use the current buffer.
+                 • {buf}? (`integer`) Remove a mapping from the given buffer.
+                   `0` for current.
 
     See also: ~
       • |vim.keymap.set()|
@@ -3596,7 +3618,7 @@ vim.keymap.set({modes}, {lhs}, {rhs}, {opts})               *vim.keymap.set()*
         -- Map "x" to a Lua function:
         vim.keymap.set('n', 'x', function() print('real lua function') end)
         -- Map "<leader>x" to multiple modes for the current buffer:
-        vim.keymap.set({'n', 'v'}, '<leader>x', vim.lsp.buf.references, { buffer = true })
+        vim.keymap.set({'n', 'v'}, '<leader>x', vim.lsp.buf.references, { buf = 0 })
         -- Map <Tab> to an expression (|:map-<expr>|):
         vim.keymap.set('i', '<Tab>', function()
           return vim.fn.pumvisible() == 1 and '<C-n>' or '<Tab>'
@@ -3630,8 +3652,8 @@ vim.keymap.set({modes}, {lhs}, {rhs}, {opts})               *vim.keymap.set()*
                    below).
 
                  Also accepts:
-                 • {buffer}? (`integer|boolean`) Creates buffer-local mapping,
-                   `0` or `true` for current buffer.
+                 • {buf}? (`integer`) Creates buffer-local mapping, `0` for
+                   current buffer.
                  • {remap}? (`boolean`, default: `false`) Make the mapping
                    recursive. Inverse of {noremap}.
 
@@ -4127,29 +4149,59 @@ vim.mpack.encode({obj})                                   *vim.mpack.encode()*
 ==============================================================================
 Lua module: vim.net                                                  *vim.net*
 
-vim.net.request({url}, {opts}, {on_response})              *vim.net.request()*
-    Makes an HTTP GET request to the given URL (asynchronous).
+*vim.net.request.Response*
 
-    This function operates in one mode:
-    • Asynchronous (non-blocking): Returns immediately and passes the response
-      object to the provided `on_response` handler on completion.
+    Fields: ~
+      • {body}  (`string`) The HTTP body of the request
+
+
+vim.net.request({url}, {opts}, {on_response})              *vim.net.request()*
+    Makes an HTTP GET request to the given URL, asynchronously passing the
+    result to the specified `on_response`, `outpath` or `outbuf`.
+
+    Examples: >lua
+        -- Write response body to file
+        vim.net.request('https://neovim.io/charter/', {
+          outpath = 'vision.html',
+        })
+
+        -- Process the response
+        vim.net.request(
+          'https://api.github.com/repos/neovim/neovim',
+          {},
+          function (err, res)
+            if err then return end
+            local stars = vim.json.decode(res.body).stargazers_count
+            vim.print(('Neovim currently has %d stars'):format(stars))
+          end
+        )
+
+        -- Write to both file and current buffer, but cancel it
+        local job = vim.net.request('https://neovim.io/charter/', {
+          outpath = 'vision.html',
+          outbuf = 0,
+        })
+        job:close()
+<
 
     Parameters: ~
       • {url}          (`string`) The URL for the request.
-      • {opts}         (`table?`) Optional parameters:
-                       • `verbose` (boolean|nil): Enables verbose output.
-                       • `retry` (integer|nil): Number of retries on transient
+      • {opts}         (`table?`) A table with the following fields:
+                       • {verbose}? (`boolean`) Enables verbose output.
+                       • {retry}? (`integer`) Number of retries on transient
                          failures (default: 3).
-                       • `outpath` (string|nil): File path to save the
-                         response body to. If set, the `body` value in the
-                         Response Object will be `true` instead of the
-                         response body.
-      • {on_response}  (`fun(err?: string, response?: { body: string|boolean })`)
+                       • {outpath}? (`string`) File path to save the response
+                         body to.
+                       • {outbuf}? (`integer`) Buffer to save the response
+                         body to.
+      • {on_response}  (`fun(err: string?, response: vim.net.request.Response?)?`)
                        Callback invoked on request completion. The `body`
-                       field in the response object contains the raw response
-                       data (text or binary). Called with (err, nil) on
-                       failure, or (nil, { body = string|boolean }) on
-                       success.
+                       field in the response parameter contains the raw
+                       response data (text or binary).
+
+    Return: ~
+        (`{ close: fun() }`) Table with method to cancel, similar to
+        |vim.SystemObj|.
 
 
 ==============================================================================
@@ -5009,6 +5061,13 @@ vim.ui.open({path}, {opt})                                     *vim.ui.open()*
     See also: ~
       • |vim.system()|
 
+vim.ui.progress_status()                            *vim.ui.progress_status()*
+    Gets a status description summarizing currently running progress messages.
+    Convenient for inclusion in 'statusline'.
+
+    Return: ~
+        (`string`) Progress status
+
 vim.ui.select({items}, {opts}, {on_choice})                  *vim.ui.select()*
     Prompts the user to pick from a list of items, allowing arbitrary
     (potentially asynchronous) work until `on_choice`.
@@ -5370,25 +5429,37 @@ To enable this feature (default opts shown): >lua
         ---@type string|table<string, 'cmd'|'msg'|'pager'> Default message target
         ---or table mapping |ui-messages| kinds and triggers to a target.
         targets = 'cmd',
-        timeout = 4000, -- Time a message is visible in the message window.
+        cmd = { -- Options related to messages in the cmdline window.
+          height = 0.5 -- Maximum height while expanded for messages beyond 'cmdheight'.
+        },
+        dialog = { -- Options related to dialog window.
+          height = 0.5, -- Maximum height.
+        },
+        msg = { -- Options related to msg window.
+          height = 0.5, -- Maximum height.
+          timeout = 4000, -- Time a message is visible in the message window.
+        },
+        pager = { -- Options related to message window.
+          height = 1, -- Maximum height.
+        },
       },
     })
 <
 
 There are four special windows/buffers for presenting messages and cmdline:
 • "cmd": Cmdline. Also used for 'showcmd', 'showmode', 'ruler', and messages
-  if 'cmdheight' > 0.
-• "msg": Message window, shows messages when 'cmdheight' == 0.
+  by default.
+• "msg": Message window, shows ephemeral messages useful for 'cmdheight' == 0.
 • "pager": Pager window, shows |:messages| and certain messages that are never
   "collapsed".
 • "dialog": Dialog window, shows modal prompts that expect user input.
 
-The buffer 'filetype' is to the above-listed id ("cmd", "msg", …). Handle
-the |FileType| event to configure any local options for these windows and
-their respective buffers.
+The buffer 'filetype' is set to the above-listed id ("cmd", "msg", …).
+Handle the |FileType| event to configure any local options for these windows
+and their respective buffers.
 
-Unlike the legacy |hit-enter| prompt, messages that overflow the cmdline area
-are instead "collapsed", followed by a `[+x]` "spill" indicator, where `x`
+Unlike the legacy |hit-enter| prompt, messages exceeding 'cmdheight' are
+instead "collapsed", followed by a `[+x]` "spill" indicator, where `x`
 indicates the spilled lines. To see the full messages, do either:
 • ENTER immediately after a message from interactive |:| cmdline.
 • |g<| at any time.

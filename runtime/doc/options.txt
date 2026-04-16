@@ -78,6 +78,17 @@ achieve special effects.  These options come in three forms:
 			If the option is a list of flags, superfluous flags
 			are removed.  When adding a flag that was already
 			present the option value doesn't change.
+			When the option supports "key:value" items and {value}
+			contains a "key:value" item or multiple
+			comma-separated items, each item is processed
+			individually:
+			- A "key:value" item where the key already exists with
+			  a different value: the old item is removed and the
+			  new item is appended to the end.
+			- A "key:value" item that is an exact duplicate is
+			  left unchanged.
+			- Other items that already exist are left unchanged.
+			- New items are appended to the end.
 			Also see |:set-args| above.
 
 :se[t] {option}^={value}				*:set^=*
@@ -85,6 +96,11 @@ achieve special effects.  These options come in three forms:
 			the {value} to a string option.  When the option is a
 			comma-separated list, a comma is added, unless the
 			value was empty.
+			When the option supports "key:value" items and {value}
+			contains a "key:value" item or multiple
+			comma-separated items, each item is processed
+			individually.  Works like |:set+=| but new items are
+			prepended to the beginning instead of appended.
 			Also see |:set-args| above.
 
 :se[t] {option}-={value}				*:set-=*
@@ -97,6 +113,12 @@ achieve special effects.  These options come in three forms:
 			When the option is a list of flags, {value} must be
 			exactly as they appear in the option.  Remove flags
 			one by one to avoid problems.
+			When the option supports "key:value" items and {value}
+			contains a "key:value" item or multiple
+			comma-separated items, each item is processed
+			individually.  A "key:value" item removes the existing
+			item with that key regardless of its value.  A "key:"
+			item also removes by key match.
 			The individual values from a comma separated list or
 			list of flags can be inserted by typing 'wildchar'.
 			See |complete-set-option|.
@@ -1459,10 +1481,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 	used.  The command-line will cover the last line of the screen when
 	shown.
 
-	WARNING: `cmdheight=0` is EXPERIMENTAL. Expect some unwanted behaviour.
-	Some 'shortmess' flags and similar mechanism might fail to take effect,
-	causing unwanted hit-enter prompts.  Some informative messages, both
-	from Nvim itself and plugins, will not be displayed.
+	WARNING: `cmdheight=0` is EXPERIMENTAL. Works better with |ui2| enabled.
 
 						*'cmdwinheight'* *'cwh'*
 'cmdwinheight' 'cwh'	number	(default 7)
@@ -3886,7 +3905,6 @@ A jump table for the options with a short description can be found at |Q_op|.
 			the action occurred.
 
 	  clean         Remove unloaded buffers from the jumplist.
-			EXPERIMENTAL: this flag may change in the future.
 
 						*'keymap'* *'kmp'*
 'keymap' 'kmp'		string	(default "")
@@ -4902,6 +4920,9 @@ A jump table for the options with a short description can be found at |Q_op|.
 	Defines the default border style of popupmenu windows. See 'winborder' for
 	valid values. |hl-PmenuBorder| is used for highlighting the border, and when
 	style is "shadow" the |hl-PmenuShadow| and |hl-PmenuShadowThrough| groups are used.
+
+	This option also applies to mouse popup menus when 'mousemodel' is set to
+	"popup" or "popup_setpos", which will display borders using the same style.
 
 						*'pumheight'* *'ph'*
 'pumheight' 'ph'	number	(default 0)
@@ -6111,7 +6132,7 @@ A jump table for the options with a short description can be found at |Q_op|.
 	encoding is used, Vim doesn't check it.
 	How the related spell files are found is explained here: |spell-load|.
 
-	If the |spellfile.lua| plugin is active and you use a language name
+	If the |package-spellfile| plugin is active and you use a language name
 	for which Vim cannot find the .spl file in 'runtimepath' the plugin
 	will ask you if you want to download the file.
 

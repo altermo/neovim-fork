@@ -101,7 +101,7 @@ describe('treesitter incremental-selection '..i, function()
     treeselect('select_next', 3)
     eq('4', get_selected())
 
-    if t.skip(jit==nil) then
+    if t.skip(jit == nil, 'sometimes fails on PUC lua') then
       return
     end
 
